@@ -22,7 +22,10 @@ def dfs_searching(start,num_of_links):
     neighbors = [] # σελιδες που συλλεγουμε 
     
     page_text = requests.get(start).text #html text σελιδας
-    text = BeautifulSoup(page_text,features="lxml").text # κειμενο χωρις html tags
+    soup = BeautifulSoup(page_text,features="lxml")
+    for script in soup(["script", "style"]): # remove all javascript and stylesheet code
+        script.extract()
+    text = soup.get_text()
     page_dict.update({start : text}) 
     neighbors = re.findall('(?<=<a href=")http[^"]*',page_text) + neighbors # βρισκουμε τα links της σελιδας
    
@@ -31,7 +34,10 @@ def dfs_searching(start,num_of_links):
         while(neighbors[0] in page_dict ):
             neighbors.pop(0)
         page_text = requests.get(neighbors[0]).text
-        text = BeautifulSoup(page_text,features="lxml").text
+        soup = BeautifulSoup(page_text,features="lxml")
+        for script in soup(["script", "style"]): # remove all javascript and stylesheet code
+            script.extract()
+        text = soup.get_text()
         page_dict.update({neighbors[0] : text})
         neighbors = re.findall('(?<=<a href=")http[^"]*',page_text) + neighbors
         
@@ -52,7 +58,10 @@ def bfs_searching(start,num_of_links):
     neighbors = []
 
     page_text = requests.get(start).text
-    text = BeautifulSoup(page_text,features="lxml").text
+    soup = BeautifulSoup(page_text,features="lxml")
+    for script in soup(["script", "style"]): # remove all javascript and stylesheet code
+        script.extract()
+    text = soup.get_text()
     page_dict.update({start : text})
     neighbors+= re.findall('(?<=<a href=")http[^"]*',page_text)
     
@@ -60,8 +69,11 @@ def bfs_searching(start,num_of_links):
         while(neighbors[0] in page_dict ): 
             neighbors.pop(0)
         page_text = requests.get(neighbors[0]).text
-        text = BeautifulSoup(page_text,features="lxml").text
-        page_dict.update({neighbors[0] : page_text})
+        soup = BeautifulSoup(page_text,features="lxml")
+        for script in soup(["script", "style"]): # remove all javascript and stylesheet code
+            script.extract()
+        text = soup.get_text()
+        page_dict.update({neighbors[0] : text})
         neighbors+= re.findall('(?<=<a href=")http[^"]*',page_text)
         
         neighbors.pop(0)
