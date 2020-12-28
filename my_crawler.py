@@ -103,7 +103,7 @@ class Crawler(threading.Thread):
             Crawler.dictionary_lock.release()
 
             # Finding the new links that start with "https" # TODO: Check if we need "https" or just "http"
-            list_of_links = re.findall('(?<=<a href=")https[^(?!x)"]*', page_text)
+            list_of_links = re.findall('(?<=<a href=")https[^"]*', page_text)
 
             # If the search algorithm is DFS then reserve the order of the list in order to
             # get the expected search order in the search-set
