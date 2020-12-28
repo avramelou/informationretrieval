@@ -81,7 +81,20 @@ class Crawler(threading.Thread):
             Crawler.crawling_links_lock.release()
 
             # Crawling on the website
-            page_text = requests.get(link).text
+            # TODO add exceptions
+            try:
+                page_text = requests.get(link, timeout=(5, 5)).text
+                content_type = requests.head(link).headers.get('Content-Type')
+                if content_type is None:
+                    print("Website Content error: " + "None Content Type")
+                    continue
+                elif not content_type.startswith('text/'):
+                    print("Website Content error: " + content_type)
+                    continue
+            except (requests.exceptions.Timeout, requests.exceptions.MissingSchema, requests.exceptions.ConnectionError, requests.exceptions.InvalidURL, requests.exceptions.InvalidSchema) as e:
+                print(e.__str__() + threading.current_thread().__str__())
+                continue
+
             cleaned_words = clean_html_text(page_text, stemming=False)
 
             # Updating the dictionary with the content
@@ -90,7 +103,7 @@ class Crawler(threading.Thread):
             Crawler.dictionary_lock.release()
 
             # Finding the new links that start with "https" # TODO: Check if we need "https" or just "http"
-            list_of_links = re.findall('(?<=<a href=")https[^"]*', page_text)
+            list_of_links = re.findall('(?<=<a href=")https[^(?!x)"]*', page_text)
 
             # If the search algorithm is DFS then reserve the order of the list in order to
             # get the expected search order in the search-set
@@ -103,6 +116,8 @@ class Crawler(threading.Thread):
                 if new_link not in Crawler.page_dict:  # and (urlparse(link).netloc == "www.python.org"):
                     Crawler.crawling_links.append(new_link)
                 Crawler.dictionary_lock.release()
+
+        print(threading.current_thread().__str__())
 
 
 # Function that removes the html tags, scripts, CSS styling code
