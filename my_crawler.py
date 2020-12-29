@@ -47,8 +47,15 @@ class Crawler(threading.Thread):
             Crawler.get_link = Crawler.queue_dict[search_algorithm]
 
     @staticmethod
-    def remove_extra_from_dict():
-        # Keep only first nun_of_links elements of page dict
+    def remove_bad_from_dict():
+        # Cleaning null terms
+        clean = {}
+        for k, v in Crawler.page_dict.items():
+            if v is not None:
+                clean[k] = v
+        Crawler.page_dict = clean
+
+        # Keeping only first nun_of_links elements of page dict
         Crawler.page_dict = dict(more_itertools.take(Crawler.num_of_links_to_crawl, Crawler.page_dict.items()))
 
     def __init__(self, start_url):
@@ -74,25 +81,30 @@ class Crawler(threading.Thread):
             Crawler.dictionary_lock.acquire()
             while link in Crawler.page_dict:
                 link = Crawler.get_link()
-            Crawler.page_dict.update({link: "i"})  # Reserving / marked as visited (the 'I' will be deleted later)
+            # Reserving / marked as visited (the pages with None keys will be deleted later)
+            Crawler.page_dict.update({link: None})
             print(len(Crawler.page_dict).__str__() + ": " + link)
             Crawler.dictionary_lock.release()
 
             Crawler.crawling_links_lock.release()
 
-            # Crawling on the website
-            # TODO add exceptions
+            # Trying to crawl on the website
+            # If crawling on that specific website is failed, we are not deleting from the dictionary
+            # In order to not to crawl again on that specific website
             try:
-                page_text = requests.get(link, timeout=(5, 5)).text
+                # Checks if the content_type is not text or unknown in order to avoid the crawling on that website
                 content_type = requests.head(link).headers.get('Content-Type')
                 if content_type is None:
-                    print("Website Content error: " + "None Content Type")
-                    continue
+                    raise requests.exceptions.MissingSchema("Website Content error: " + "None Content Type")
                 elif not content_type.startswith('text/'):
-                    print("Website Content error: " + content_type)
-                    continue
-            except (requests.exceptions.Timeout, requests.exceptions.MissingSchema, requests.exceptions.ConnectionError, requests.exceptions.InvalidURL, requests.exceptions.InvalidSchema) as e:
-                print(e.__str__() + threading.current_thread().__str__())
+                    raise requests.exceptions.InvalidSchema("Website Content error: " + content_type)
+                else:
+                    # Get request, raises a timeout if 7 seconds are passed without response from the server
+                    page_text = requests.get(link, timeout=(7, 7)).text
+
+            except (requests.exceptions.Timeout, requests.exceptions.MissingSchema, requests.exceptions.ConnectionError,
+                    requests.exceptions.InvalidURL, requests.exceptions.InvalidSchema, requests.exceptions.TooManyRedirects) as e:
+                print(e.__str__() + " on website: " + link)
                 continue
 
             cleaned_words = clean_html_text(page_text, stemming=False)
@@ -102,7 +114,7 @@ class Crawler(threading.Thread):
             Crawler.page_dict.update({link: cleaned_words})
             Crawler.dictionary_lock.release()
 
-            # Finding the new links that start with "https" # TODO: Check if we need "https" or just "http"
+            # Finding the new links that start with "https" # TODO: Change to http
             list_of_links = re.findall('(?<=<a href=")https[^"]*', page_text)
 
             # If the search algorithm is DFS then reserve the order of the list in order to
@@ -178,10 +190,17 @@ def clean_html_text(html_text, stemming=False):
     # Converting the stop words to a set
     stop_words = set(stop_words)
 
-    # Getting the text - Removing HTML
-    text = BeautifulSoup(html_text, "html.parser").get_text()
+    # Getting the html file
+    soup = BeautifulSoup(html_text, "html.parser")
 
-    # Removing non letters and numbers (which also removes css and js)
+    # Extract/Remove all script/Javascript and CSS styling code from the bs4 object
+    for script in soup(["script", "style"]):
+        script.extract()
+
+    # Get the text from the bs4 object
+    text = soup.get_text()
+
+    # Removing non letters and numbers
     letters_only = re.sub("[^a-zA-Z]", " ", text)
 
     # Converting to lower case, split into individual words
@@ -222,9 +241,11 @@ for i in range(number_of_threads):
 for crawler in crawler_threads:
     crawler.join()
 print("Crawling time: %s seconds" % format((time.time() - crawl_start_time), ".2f"))
+print("Total Number of web-pages visited are: " + len(Crawler.page_dict).__str__())
+# Removing bad web-pages (the ones with None words or that the connection occurred with an error/exception)
+Crawler.remove_bad_from_dict()
+print("Total Number of web-pages kept are: " + len(Crawler.page_dict).__str__())
 
-print("Total Number of pages visited are: " + len(Crawler.page_dict).__str__())
-Crawler.remove_extra_from_dict()
 
 # Save dictionary in file
 if start_from_scratch == '1':
