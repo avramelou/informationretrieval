@@ -26,17 +26,19 @@ class InvertedIndexer(threading.Thread):
     lock_documents_data = threading.Lock()
     lock_count = threading.Lock()
 
+    # Initialising indexer and it's static variables for the indexer
     @staticmethod
-    def init_static_variables():
+    def init_indexer(new_indexer=True):
         # Load data from file
         InvertedIndexer.document_dict = np.load(InvertedIndexer.DOC_DATA_FILENAME, allow_pickle=True).item()
         InvertedIndexer.counted_documents = 0
 
-    def __init__(self, new_indexer=True):
         # Check if we start over or we start from existed indexer
         if not new_indexer:
             InvertedIndexer.indexer = np.load(InvertedIndexer.INVERTED_INDEXER_FILENAME, allow_pickle=True).item()
             InvertedIndexer.documents_metadata = np.load(InvertedIndexer.DOC_METADATA_FILENAME, allow_pickle=True).item()
+
+    def __init__(self):
         threading.Thread.__init__(self)
 
     # Method that creates the indexer
@@ -118,22 +120,23 @@ class InvertedIndexer(threading.Thread):
                 break
 
 
-indexer_threads = []
-InvertedIndexer.init_static_variables()
-index_start_time = time.time()
-# Running Threads
-number_of_threads = 5
-for i in range(number_of_threads):
-    indexer = InvertedIndexer(new_indexer=True)
-    indexer.start()
-    indexer_threads.append(indexer)
-for indexer in indexer_threads:
-    indexer.join()
-index_end_time = time.time()
-print(InvertedIndexer.indexer)
-print(InvertedIndexer.documents_metadata)
-print("Time needed: %f seconds" % (index_end_time-index_start_time))
+# Updates the indexer in case of the desire to add any new data contained in data.npy
+def update_indexer(number_of_threads=1):
+    index_start_time = time.time()
+    # Running the indexer in Threads
+    indexer_threads = []
+    for i in range(number_of_threads):
+        indexer = InvertedIndexer()
+        indexer.start()
+        indexer_threads.append(indexer)
+    for indexer in indexer_threads:
+        indexer.join()
+    index_end_time = time.time()
+    print(InvertedIndexer.indexer)
+    print(InvertedIndexer.documents_metadata)
+    print("Time needed for indexer update: %f seconds" % (index_end_time-index_start_time))
 
-# Saving Inverted Indexer and documents' meta-data
-np.save(InvertedIndexer.INVERTED_INDEXER_FILENAME, InvertedIndexer.indexer)
-np.save(InvertedIndexer.DOC_METADATA_FILENAME, InvertedIndexer.documents_metadata)
+    # Saving Inverted Indexer and documents' meta-data
+    np.save(InvertedIndexer.INVERTED_INDEXER_FILENAME, InvertedIndexer.indexer)
+    np.save(InvertedIndexer.DOC_METADATA_FILENAME, InvertedIndexer.documents_metadata)
+
