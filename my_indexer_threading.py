@@ -134,6 +134,6 @@ print(InvertedIndexer.indexer)
 print(InvertedIndexer.documents_metadata)
 print("Time needed: %f seconds" % (index_end_time-index_start_time))
 
-
+# Saving Inverted Indexer and documents' meta-data
 np.save(InvertedIndexer.INVERTED_INDEXER_FILENAME, InvertedIndexer.indexer)
-np.save(InvertedIndexer.DOC_DATA_FILENAME, InvertedIndexer.documents_metadata)
+np.save(InvertedIndexer.DOC_METADATA_FILENAME, InvertedIndexer.documents_metadata)
