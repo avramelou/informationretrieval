@@ -14,9 +14,12 @@ def idf(total_docs, docs_with_term):
 
 
 class QueryProcessor:
+    # indexer_update_threads parameter has no effect if parameter update_indexer_from_datafile is False
+    def __init__(self, new_indexer=True, update_indexer_from_datafile=False, indexer_update_threads=1):
+        my_indexer_threading.InvertedIndexer.init_indexer(new_indexer)
 
-    def __init__(self, new_indexer=True):
-        self.my_indexer = my_indexer_threading.InvertedIndexer(new_indexer=new_indexer)
+        if update_indexer_from_datafile:
+            my_indexer_threading.update_indexer(number_of_threads=indexer_update_threads)
 
     def top_k(self, query, k=1):
 
@@ -33,13 +36,13 @@ class QueryProcessor:
         # For every term in query
         for term in terms_frequencies_dict.keys():
             # Searching term in the indexer
-            term_indexer = self.my_indexer.indexer.get(term)
+            term_indexer = my_indexer_threading.InvertedIndexer.indexer.get(term)
 
             # If the term exists in the indexer (in any documents)
             if term_indexer is not None:
                 # The number of docs that contain the term
                 n_t = term_indexer[0]
-                total_docs = len(self.my_indexer.documents_metadata)
+                total_docs = len(my_indexer_threading.InvertedIndexer.documents_metadata)
                 idf_t = idf(total_docs, n_t)
                 freq_tq = terms_frequencies_dict.get(term)  # The frequency of this term in the query
                 tf_tq = tf(freq_tq, max_freq_query)
@@ -54,7 +57,7 @@ class QueryProcessor:
                     freq_list = d_indexes[1:]
 
                     freq_td = len(freq_list)  # The frequency of the term in the current document
-                    max_freq_doc = self.my_indexer.documents_metadata.get(document)[1]
+                    max_freq_doc = my_indexer_threading.InvertedIndexer.documents_metadata.get(document)[1]
                     tf_td = tf(freq_td, max_freq_doc)
 
                     # Updating accumulator
@@ -67,17 +70,17 @@ class QueryProcessor:
 
         # Updating similarities of accumulators based on the lengths
         for document in accumulators.keys():
-            ld = self.my_indexer.documents_metadata.get(document)[0]
+            ld = my_indexer_threading.InvertedIndexer.documents_metadata.get(document)[0]
             similarity = accumulators.get(document)/(ld*lq)
             accumulators.update({document: similarity})
         print(accumulators)
 
         import heapq
         # Returning top k largest keys in the dictionary
-        # Using heapq in order to return it in an efficient time of O(n log k)
+        # Using heapq in order to return the top k documents in an efficient time of O(n log k)
         return heapq.nlargest(k, accumulators, key=accumulators.get)
 
 
-my_query_processor = QueryProcessor(new_indexer=True)
+my_query_processor = QueryProcessor(new_indexer=False, update_indexer_from_datafile=False, indexer_update_threads=1)
 top_k = my_query_processor.top_k(query="covid", k=5)
 print(top_k)
