@@ -1,0 +1,42 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+  <meta charset="utf-8">
+  <title >My Query Processor</title>
+
+  <link rel="icon" type="image/png" href="static/search-engine.png">
+
+  <meta name="theme-color" content="#fafafa">
+</head>
+
+<body>
+
+  <!-- Add your site or application content here -->
+  <div align="center">
+  <form method="post" action="/query">
+    <label for="field" style="font-size: xxx-large;">My Search Engine</label> <br><br>
+    <input type="text" height="16" name="field" id="field" size="60" placeholder="Type your query here..." value="{{ request.form['field'] }}"/>
+    <input type="number" height="16" name="topk" id="topk" min="1" placeholder="Select how many results you want" value="{{ request.form['topk'] }}" default="1"/>
+    <button type="submit" value="submit"><img src="static/loupe.png"></button> <br><br><br><br><br>
+  </form>
+  </div>
+  <div text-align="center">
+    <form  method="post" action="/feedback">
+    {% for i,(url,title) in urls %}
+    <input type="checkbox" value="{{i}}" id="feedback" name="feedback">
+    <a href="{{ url }}">{{title}}</a><br><br><br>
+    {% endfor %}
+    <p align="center">{{comments}}</p>
+      {% if comments == "" or  comments == "No more results to show" %}
+      <p>Check the documents that were relevant to take better results</p>
+      <button type="submit" value="submit"><img src="static/good-feedback.png"></button> <br><br><br><br><br>
+      {% endif %}
+    </form>
+  </div>
+  <div align="right">
+  <footer style=" position:absolute;bottom:0;width:100%;height:60px;">  <div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div></footer>
+  </div>
+</body>
+
+</html>
