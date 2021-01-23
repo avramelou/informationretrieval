@@ -1,4 +1,4 @@
-from Info_retrieval import my_indexer_threading
+import my_indexer_threading
 import numpy as np
 import collections
 import math
@@ -124,7 +124,7 @@ class QueryProcessor:
         # Using heapq in order to return the top k documents in an efficient time of O(n log k)
         return heapq.nlargest(k, self.accumulators, key=self.accumulators.get)
 
-    def feedback(self, feedback_docs):
+    def feedback(self, feedback_docs,k):
         relevant_docs = set(feedback_docs)
         non_relevant_docs = set()
         for document in self.accumulators.keys():
@@ -166,21 +166,6 @@ class QueryProcessor:
                     prev_total = self.query_vector.get(term) if self.query_vector.get(term) is not None else 0
                     self.query_vector.update({term: prev_total - (0.25 * (idf_t * tf_td))/len(non_relevant_docs)})
         print(self.query_vector)
-        return self.top_k_feedback(k=5)
+        return self.top_k_feedback(k)
 
 
-def get_feedback():
-    feedback_string = input("Give in a string the names of the documents that had best matched with the query (e.g. doc1 doc3): ")
-    feedback_docs = feedback_string.split()
-
-    print("selected documents: " + feedback_docs.__str__())
-    return feedback_docs
-
-
-my_query_processor = QueryProcessor(new_indexer=True, update_indexer_from_datafile=True, indexer_update_threads=1)
-top_k = my_query_processor.top_k(query="Loukia Documents", k=10)
-print("query vector: " + my_query_processor.query_vector.__str__())
-print(top_k)
-
-while True:
-    print(my_query_processor.feedback(get_feedback()))

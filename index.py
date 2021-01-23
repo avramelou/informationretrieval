@@ -6,7 +6,7 @@ Created on Fri Jan 15 12:36:14 2021
 """
 
 from flask import Flask, render_template, request
-from informationretrieval.my_query_processor import *
+from my_query_processor import *
 from bs4 import BeautifulSoup
 import requests
 
@@ -15,12 +15,11 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template('index.html', urls=enumerate({}),comments=" ")
+    return render_template('index.html', urls={},comments=" ")
 
 
 @app.route('/query', methods=['GET', 'POST'])
 def get_query():
-    global query 
     query = request.form['field']
     global k 
     k = request.form['topk']
@@ -29,7 +28,6 @@ def get_query():
     
     global my_query_processor 
     my_query_processor = QueryProcessor()
-    global topk 
     topk = my_query_processor.top_k(query,k)
     
     urls = {}
@@ -45,17 +43,21 @@ def get_query():
         comments = "No more results to show"
     
    
-    return render_template('index.html',urls=enumerate(urls.items()),comments=comments)
+    return render_template('index.html',urls=urls.items(),comments=comments)
 
 
 @app.route('/feedback', methods=['GET', 'POST'])
 def get_feedback():
     feedback = request.form.getlist('feedback')
-       
     
+    feedback_response = my_query_processor.feedback(feedback,k)
     
+    urls = {}
+    for x in feedback_response:
+        soup = BeautifulSoup(requests.get(x).text,'html.parser')
+        urls[x] = soup.title.text
     
-    return "OK"
-    
+    return render_template('index.html',urls=urls.items(),comments="")
+
     
 app.run()
