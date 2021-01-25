@@ -1,4 +1,4 @@
-import my_indexer_threading
+from Info_retrieval import my_indexer_threading
 import numpy as np
 import collections
 import math
@@ -81,16 +81,21 @@ class QueryProcessor:
             # Update the documents' accumulator for that term
             self.update_accumulator_for_term(term, tf_tq)
 
+        returned_documents = {}
+
         # Updating similarities of accumulators based on the lengths
         for document in self.accumulators.keys():
             ld = my_indexer_threading.InvertedIndexer.documents_metadata.get(document)[0]
+            title = my_indexer_threading.InvertedIndexer.documents_metadata.get(document)[2]
             similarity = self.accumulators.get(document)/(ld*lq)
             self.accumulators.update({document: similarity})
+            returned_documents.update({document: title})
         print(self.accumulators)
 
         # Returning top k largest keys in the dictionary
         # Using heapq in order to return the top k documents in an efficient time of O(n log k)
-        return heapq.nlargest(k, self.accumulators, key=self.accumulators.get)
+        top_k_keys = heapq.nlargest(k, self.accumulators, key=self.accumulators.get)
+        return {k: returned_documents[k] for k in top_k_keys}
 
     def top_k_feedback(self, k=1):
         # Initialise Accumulators
@@ -104,6 +109,8 @@ class QueryProcessor:
         # List for irrelevant keys (documents) in order to delete them from the output
         irrelevant_keys = []
 
+        returned_documents = {}
+
         # Updating similarities of accumulators based on the lengths
         for document in self.accumulators.keys():
             ld = my_indexer_threading.InvertedIndexer.documents_metadata.get(document)[0]
@@ -113,16 +120,19 @@ class QueryProcessor:
             # then mark it as irrelevant by adding the key to the irrelevant_keys list
             if similarity >= 0:
                 self.accumulators.update({document: similarity})
+                title = my_indexer_threading.InvertedIndexer.documents_metadata.get(document)[2]
+                returned_documents.update({document: title})
             else:
                 irrelevant_keys.append(document)
 
         # Delete irrelevant keys (documents) fom the accumulators
         for document in irrelevant_keys:
             del self.accumulators[document]
-
+        print(self.accumulators)
         # Returning top k largest keys in the dictionary
         # Using heapq in order to return the top k documents in an efficient time of O(n log k)
-        return heapq.nlargest(k, self.accumulators, key=self.accumulators.get)
+        top_k_keys = heapq.nlargest(k, self.accumulators, key=self.accumulators.get)
+        return {k: returned_documents[k] for k in top_k_keys}
 
     def feedback(self, feedback_docs,k):
         relevant_docs = set(feedback_docs)
@@ -165,7 +175,7 @@ class QueryProcessor:
                     # else start from 0
                     prev_total = self.query_vector.get(term) if self.query_vector.get(term) is not None else 0
                     self.query_vector.update({term: prev_total - (0.25 * (idf_t * tf_td))/len(non_relevant_docs)})
-        print(self.query_vector)
+        # print(self.query_vector)
         return self.top_k_feedback(k)
 
 

@@ -16,16 +16,17 @@
   <div align="center">
   <form method="post" action="/query">
     <label for="field" style="font-size: xxx-large;">My Search Engine</label> <br><br>
-    <input type="text" height="16" name="field" id="field" size="60" placeholder="Type your query here..." value="{{ request.form['field'] }}"/>
-    <input type="number" height="16" name="topk" id="topk" min="1" placeholder="Select how many results you want" value="{{ request.form['topk'] }}" default="1"/>
+    <input type="text" height="24px" name="field" id="field" size="60" placeholder="Type your query here..." value="{{ query }}"/>
+    <input type="number" height="24px" name="top_k" id="top_k" min="1" placeholder="Select how many results you want" value="{{ top_k }}" default="1"/>
     <button type="submit" value="submit"><img src="static/loupe.png"></button> <br><br><br><br><br>
   </form>
   </div>
-  <div text-align="center">
+  <div style="margin-left:10em;">
     <form  method="post" action="/feedback">
     {% for url,title in urls %}
     <input type="checkbox" value="{{ url }}" id="feedback" name="feedback">
-    <a href="{{ url }}">{{title}}</a><br><br><br>
+    <a href="{{ url }}" style="font-size:medium;">{{title}}</a><br>
+      <p style="font-size: small;color:green;">{{url}}</p> <br><br>
     {% endfor %}
     <p align="center">{{comments}}</p>
       {% if comments == "" or  comments == "No more results to show" %}
