@@ -15,11 +15,12 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template('index.html', urls={},comments=" ")
+    return render_template('index.html', urls={},comments=" ",query="",topk="")
 
 
 @app.route('/query', methods=['GET', 'POST'])
 def get_query():
+    global query  
     query = request.form['field']
     global k 
     k = request.form['topk']
@@ -27,7 +28,7 @@ def get_query():
     k = int(k) if (k != "") else 1
     
     global my_query_processor 
-    my_query_processor = QueryProcessor()
+    my_query_processor = QueryProcessor(new_indexer=False)
     topk = my_query_processor.top_k(query,k)
     
     urls = {}
@@ -43,7 +44,7 @@ def get_query():
         comments = "No more results to show"
     
    
-    return render_template('index.html',urls=urls.items(),comments=comments)
+    return render_template('index.html',urls=urls.items(),comments=comments,query=query,topk=k)
 
 
 @app.route('/feedback', methods=['GET', 'POST'])
@@ -57,7 +58,9 @@ def get_feedback():
         soup = BeautifulSoup(requests.get(x).text,'html.parser')
         urls[x] = soup.title.text
     
-    return render_template('index.html',urls=urls.items(),comments="")
+    return render_template('index.html',urls=urls.items(),comments="",query=query,topk=k)
 
-    
+ 
+global query
+global k   
 app.run()
