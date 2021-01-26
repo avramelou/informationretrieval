@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <title >My Search Engine</title>
 
-  <link rel="icon" type="image/png" href="static/search-engine.png">
+  <link rel="icon" type="image/png" href="../static/search-engine.png">
 
   <meta name="theme-color" content="#fafafa">
 </head>
@@ -18,7 +18,7 @@
     <label for="field" style="font-size: xxx-large;">My Search Engine</label> <br><br>
     <input type="text" height="24px" name="field" id="field" size="60" placeholder="Type your query here..." value="{{ query }}"/>
     <input type="number" height="24px" name="top_k" id="top_k" min="1" placeholder="Select how many results you want" value="{{ top_k }}" default="1"/>
-    <button type="submit" value="submit"><img src="static/loupe.png"></button> <br><br><br><br><br>
+    <button type="submit" value="submit"><img src="../static/loupe.png"></button> <br><br><br><br><br>
   </form>
   </div>
   <div style="margin-left:10em;">
@@ -31,7 +31,7 @@
     <p align="center">{{comments}}</p>
       {% if comments == "" or  comments == "No more results to show" %}
       <p>Check the documents that were relevant to take better results</p>
-      <button type="submit" value="submit"><img src="static/good-feedback.png"></button> <br><br><br><br><br>
+      <button type="submit" value="submit"><img src="../static/good-feedback.png"></button> <br><br><br><br><br>
       {% endif %}
     </form>
   </div>

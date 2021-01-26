@@ -1,4 +1,5 @@
 from Info_retrieval import my_indexer_threading
+from Info_retrieval import my_text_processor
 import numpy as np
 import collections
 import math
@@ -64,8 +65,11 @@ class QueryProcessor:
         # Initialise Accumulators
         self.accumulators = {}
 
+        # Applying the same pre-processing on the queries that was used in the crawler
+        query_terms = my_text_processor.TextProcessor.get_useful_word_list(query, stemming=True)
+
         # The frequencies of the terms in the query
-        terms_frequencies_dict = collections.Counter(query.split())
+        terms_frequencies_dict = collections.Counter(query_terms)
         #  The frequency of the most frequent term in the query
         max_freq_query = max(terms_frequencies_dict.values())
         #  The length of the vectors of the query

@@ -42,6 +42,31 @@ class TextProcessor:
     def get_https_links_from_text(html_text):
         return re.findall('(?<=<a href=")https[^"]*', html_text)
 
+    @staticmethod
+    def apply_stemming(words_list):
+        return [TextProcessor.stemmer.stem(word) for word in words_list]
+
+    @staticmethod
+    def remove_stop_words(words_list):
+        return [word for word in words_list if word not in TextProcessor.stop_words]
+
+    @staticmethod
+    def get_useful_word_list(text, stemming):
+        # Remove non-english letters (Keeping numbers and english letters)
+        letters_only = re.sub("[^a-zA-Z0-9]+", " ", text)
+
+        # Converting to lower case, split into individual words
+        words = letters_only.lower().split()
+
+        # Removing stop words, in order to keep only the useful words
+        useful_words = TextProcessor.remove_stop_words(words)
+
+        # If stemming is used, applying stemming in order to break a word down into its' root
+        if stemming:
+            useful_words = TextProcessor.apply_stemming(useful_words)
+
+        return useful_words
+
     # Returns the title of the given html_text (if it exists)
     # and also an array with the useful words
     def get_cleaned_doc(self, html_text):
@@ -68,17 +93,9 @@ class TextProcessor:
             raise lang_detect_exception.LangDetectException(code=lang != 'en', message="Non-english language, " + lang)
 
         # Remove non-english letters (Keeping numbers and english letters)
-        # letters_only = re.sub("[^a-zA-Z]", " ", text)
-        letters_only = re.sub("[^a-zA-Z0-9]+", " ", text)
-
         # Converting to lower case, split into individual words
-        words = letters_only.lower().split()
-
         # Removing stop words, in order to keep only the useful words
-        useful_words = [word for word in words if word not in TextProcessor.stop_words]
-
         # If stemming is used, applying stemming in order to break a word down into its' root
-        if self.stemming:
-            useful_words = [TextProcessor.stemmer.stem(word) for word in useful_words]
+        useful_words = TextProcessor.get_useful_word_list(text, self.stemming)
 
         return doc_title, useful_words
