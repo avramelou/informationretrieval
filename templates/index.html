@@ -7,21 +7,46 @@
 
   <link rel="icon" type="image/png" href="../static/search-engine.png">
 
+
   <meta name="theme-color" content="#fafafa">
+
+  <style>
+    #loader{
+      border: 16px solid #f3f3f3; /* Light grey */
+      border-top: 16px solid #3498db; /* Blue */
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      animation: spin 2s linear infinite;
+      display:none;
+      top : 50%;
+      margin-top: -40px; /* half of the height */
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+
+
 </head>
 
-<body>
+<body >
 
   <!-- Add your site or application content here -->
   <div align="center">
-  <form method="post" action="/query">
-    <label for="field" style="font-size: xxx-large;">My Search Engine</label> <br><br>
-    <input type="text" height="24px" name="field" id="field" size="60" placeholder="Type your query here..." value="{{ query }}"/>
-    <input type="number" height="24px" name="top_k" id="top_k" min="1" placeholder="Select how many results you want" value="{{ top_k }}" default="1"/>
-    <button type="submit" value="submit"><img src="../static/loupe.png"></button> <br><br><br><br><br>
+  <form method="post" action="/query" >
+    <a href="/" style="font-size: xxx-large;">My Search Engine</a> <br><br>
+    <input type="text" height="48px" name="field" id="field" size="60" placeholder="Type your query here..." value="{{ query }}"/>
+    <input type="number" height="48px" name="top_k" id="top_k" min="1" placeholder="Select how many results you want" value="{{ topk }}" default="1"/>
+    <button type="submit" value="submit" onclick="clicked()"><img src="../static/loupe.png"></button> <br><br><br><br><br>
   </form>
   </div>
-  <div style="margin-left:10em;">
+  <div id="loader"></div>
+  <div style="margin-left:10em; font-size:medium;" id="content">
     <form  method="post" action="/feedback">
     {% for url,title in urls %}
     <input type="checkbox" value="{{ url }}" id="feedback" name="feedback">
@@ -30,14 +55,29 @@
     {% endfor %}
     <p align="center">{{comments}}</p>
       {% if comments == "" or  comments == "No more results to show" %}
-      <p>Check the documents that were relevant to take better results</p>
-      <button type="submit" value="submit"><img src="../static/good-feedback.png"></button> <br><br><br><br><br>
+      <p>Do you want better results? Check the documents that are relevant and click here to take better results!
+        <button type="submit" value="submit" onclick="clicked()"><img src="../static/good-feedback.png"></button></p> <br><br><br><br><br>
       {% endif %}
     </form>
   </div>
   <div align="right">
   <footer style="bottom:0;width:100%;height:60px;">  <div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div></footer>
   </div>
+
+  <script type="text/javascript">
+    function clicked() {
+      document.getElementById("content").style.display="none"
+      document.getElementById("loader").style.display="block"
+    }
+
+    window.load=function(){
+      document.getElementById("content").style.display="block"
+      document.getElementById("loader").style.display="none"
+      }
+  </script>
+
+
 </body>
+
 
 </html>
