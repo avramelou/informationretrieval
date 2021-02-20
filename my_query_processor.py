@@ -1,5 +1,5 @@
-from Info_retrieval import my_indexer_threading
-from Info_retrieval import my_text_processor
+import my_indexer_threading
+import my_text_processor
 import numpy as np
 import collections
 import math
@@ -22,7 +22,7 @@ class QueryProcessor:
     NEG_FEEDBACK_W = -1 * 0.25
 
     # indexer_update_threads parameter has no effect if parameter update_indexer_from_datafile is False
-    def __init__(self, new_indexer=True, update_indexer_from_datafile=True, indexer_update_threads=1):
+    def __init__(self, new_indexer=False, update_indexer_from_datafile=False, indexer_update_threads=1):
         my_indexer_threading.InvertedIndexer.init_indexer(new_indexer)
 
         self.query_vector = None
@@ -90,8 +90,7 @@ class QueryProcessor:
             doc_title = my_indexer_threading.InvertedIndexer.documents_metadata.get(document)[2]
             top_k_documents_title_dict.update({document: doc_title})
 
-        # Update the accumulator to have only the top k documents
-        self.accumulators = top_k_accumulator
+        self.accumulators = top_k_accumulator        
 
         return top_k_documents_title_dict
 
@@ -103,6 +102,8 @@ class QueryProcessor:
 
         # Applying the same pre-processing on the queries that was used in the crawler
         query_terms = my_text_processor.TextProcessor.get_useful_word_list(query, stemming=True)
+        if(len(query_terms)==0):
+            return {}
         # The frequencies of the terms in the query
         terms_frequencies_dict = collections.Counter(query_terms)
         #  The frequency of the most frequent term in the query
@@ -236,7 +237,6 @@ class QueryProcessor:
     #     # The number of total documents
     #     total_docs = len(meta_data_docs)
     #
-    #     print(self.accumulators.keys())  # TODO delete ths line
     #
     #     feedback_terms = QueryProcessor.find_terms_in_feedback_docs(self.accumulators.keys())
     #

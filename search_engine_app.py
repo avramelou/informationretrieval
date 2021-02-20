@@ -2,6 +2,8 @@
 from flask import Flask, render_template, request
 from my_query_processor import *
 from abc import ABC
+from langdetect import detect, lang_detect_exception
+import time
 
 app = Flask(__name__)
 
@@ -27,6 +29,7 @@ def get_query():
     if (FlaskApp.given_query.isspace() or not FlaskApp.given_query):
         return render_template('index.html', urls={}, comments=" ", query="", topk="")
     
+            
     #get number of wanted documents 
     FlaskApp.number_of_wanted_docs = request.form['top_k']
     FlaskApp.number_of_wanted_docs = int(FlaskApp.number_of_wanted_docs) if (FlaskApp.number_of_wanted_docs != "") else 10
@@ -37,7 +40,7 @@ def get_query():
     # comments for the user depending on results
     comments = ""
     if len(top_k) == 0:
-        comments = "No results for this query! Please try again with other keywords"
+        comments = "No results for this query! Please try again with other keywords. Use English words and avoid stemming words"
     elif FlaskApp.number_of_wanted_docs > len(top_k):
         comments = "No more results to show"
 
@@ -51,8 +54,12 @@ def get_feedback():
     #get relevant documents
     feedback = request.form.getlist('feedback')
     #get results after feedback
+    start = time.time()
     top_k_feedback = FlaskApp.my_query_processor.feedback(feedback, FlaskApp.number_of_wanted_docs)
-
+    end = time.time()
+    
+    print((end-start))
+    
     return render_template('index.html', urls=top_k_feedback.items(), comments="",
                            query=FlaskApp.given_query, topk=FlaskApp.number_of_wanted_docs)
 
