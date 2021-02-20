@@ -54,6 +54,9 @@
       <p style="font-size: small;color:green;">{{url}}</p> <br><br>
     {% endfor %}
     <p align="center">{{comments}}</p>
+      {% if comments != "" %}
+      <br><br><br><br>
+      {% endif %}
       {% if comments == "" or  comments == "No more results to show" %}
       <p>Do you want better results? Check the documents that are relevant and click here to take better results!
         <button type="submit" value="submit" onclick="clicked()"><img src="../static/good-feedback.png"></button></p> <br><br><br><br><br>
