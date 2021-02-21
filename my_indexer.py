@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from Info_retrieval import metadata as meta
+import metadata as meta
 import numpy as np
 import math
 import threading
 import time
-
+import sys
 import queue
 
 
@@ -167,3 +167,13 @@ def update_indexer(number_of_threads=1):
     # Saving updated Inverted Indexer and documents' meta-data
     np.save(meta.INVERTED_INDEXER_FILE_PATH, InvertedIndexer.indexer)
     np.save(meta.DOC_METADATA_FILE_PATH, InvertedIndexer.documents_metadata)
+    
+try:
+    new_indexer_parameter = sys.argv[1]
+    if new_indexer_parameter==1:
+        InvertedIndexer.init_indexer(True)
+    elif new_indexer_parameter==0:
+        InvertedIndexer.init_indexer(False)
+    update_indexer(1)
+except IndexError:
+    new_indexer_parameter = None
