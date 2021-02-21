@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, render_template, request
-from my_query_processor import *
-from abc import ABC
-from langdetect import detect, lang_detect_exception
+from Info_retrieval.my_query_processor import QueryProcessor
+from abc import ABC  # Package that is used for the abstract classes
 import time
 
 app = Flask(__name__)
 
 
+# Abstract class for the flask application
 class FlaskApp(ABC):
     my_query_processor = QueryProcessor(new_indexer=False)
     given_query = None
@@ -23,24 +23,24 @@ def index():
 # function for handling query
 @app.route('/query', methods=['GET', 'POST'])
 def get_query():
-    #get query
+    # get query
     FlaskApp.given_query = request.form['field']
     # check if query is empty in order to not find results 
-    if (FlaskApp.given_query.isspace() or not FlaskApp.given_query):
+    if FlaskApp.given_query.isspace() or not FlaskApp.given_query:
         return render_template('index.html', urls={}, comments=" ", query="", topk="")
-    
-            
-    #get number of wanted documents 
+
+    # get number of wanted documents
     FlaskApp.number_of_wanted_docs = request.form['top_k']
     FlaskApp.number_of_wanted_docs = int(FlaskApp.number_of_wanted_docs) if (FlaskApp.number_of_wanted_docs != "") else 10
 
-    #find top-k results
+    # find top-k results
     top_k = FlaskApp.my_query_processor.top_k(FlaskApp.given_query, FlaskApp.number_of_wanted_docs)
     
     # comments for the user depending on results
     comments = ""
     if len(top_k) == 0:
-        comments = "No results for this query! Please try again with other keywords. Use English words and avoid stemming words"
+        comments = "No results for this query! Please try again with other keywords. " \
+                   "Use English words and avoid stemming words"
     elif FlaskApp.number_of_wanted_docs > len(top_k):
         comments = "No more results to show"
 
@@ -51,9 +51,9 @@ def get_query():
 # function for handling feedback
 @app.route('/feedback', methods=['GET', 'POST'])
 def get_feedback():
-    #get relevant documents
+    # get relevant documents
     feedback = request.form.getlist('feedback')
-    #get results after feedback
+    # get results after feedback
     start = time.time()
     top_k_feedback = FlaskApp.my_query_processor.feedback(feedback, FlaskApp.number_of_wanted_docs)
     end = time.time()
