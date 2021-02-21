@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, render_template, request
-from Info_retrieval.my_query_processor import QueryProcessor
+from my_query_processor import QueryProcessor
 from abc import ABC  # Package that is used for the abstract classes
 import time
 

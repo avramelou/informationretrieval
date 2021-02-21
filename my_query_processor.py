@@ -1,5 +1,5 @@
-from Info_retrieval import my_indexer
-from Info_retrieval import my_text_processor
+import my_indexer
+import my_text_processor
 import numpy as np
 import collections
 import math

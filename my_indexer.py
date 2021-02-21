@@ -82,7 +82,8 @@ class InvertedIndexer(threading.Thread):
                     print("Loading block " + (InvertedIndexer.document_blocks_read + 1).__str__()
                           + " on indexer from disk")
                     next_block_file = (InvertedIndexer.document_blocks_read + 1).__str__() + ".npy"
-                    pages_dictionary = np.load(meta.BLOCK_FILE_NAME_PREFIX_PATH + next_block_file, allow_pickle=True).item()
+                    pages_dictionary = np.load(meta.BLOCK_FILE_NAME_PREFIX_PATH + next_block_file,
+                                               allow_pickle=True).item()
                     InvertedIndexer.document_blocks_read += 1
                     # Assert in order to confirm that this is a dictionary before the call of the get() operation
                     assert isinstance(pages_dictionary, dict)
@@ -161,19 +162,27 @@ def update_indexer(number_of_threads=1):
     for indexer in indexer_threads:
         indexer.join()
     index_end_time = time.time()
-    print("Time needed for indexer update: %f seconds" % (index_end_time-index_start_time))
+    print("Time needed for indexer update: %f seconds" % (index_end_time - index_start_time))
     print("New documents found since the last update: " + InvertedIndexer.new_documents_found.__str__())
 
     # Saving updated Inverted Indexer and documents' meta-data
     np.save(meta.INVERTED_INDEXER_FILE_PATH, InvertedIndexer.indexer)
     np.save(meta.DOC_METADATA_FILE_PATH, InvertedIndexer.documents_metadata)
-    
+
+
 try:
     new_indexer_parameter = sys.argv[1]
-    if new_indexer_parameter==1:
+    if new_indexer_parameter == '1':
         InvertedIndexer.init_indexer(True)
-    elif new_indexer_parameter==0:
+    elif new_indexer_parameter == '0':
         InvertedIndexer.init_indexer(False)
+    else:
+        raise ValueError("Please run the app again! Give 1 in order to make new indexer or 0 to update indexer")
     update_indexer(1)
 except IndexError:
     new_indexer_parameter = None
+except ValueError as e:
+    print(e)
+    new_indexer_parameter = None
+
+

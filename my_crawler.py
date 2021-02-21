@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from Info_retrieval import my_text_processor as my_tp
-from Info_retrieval.my_text_processor import TextProcessor
-from Info_retrieval import metadata as meta
+import my_text_processor as my_tp
+from my_text_processor import TextProcessor
+import metadata as meta
 
 import sys
 import requests
@@ -81,7 +81,6 @@ class Crawler(threading.Thread):
             # The current block's dictionary with the websites and words that have been crawled
             Crawler.pages_dictionary = {}
         else:
-            # todo check the warning of get
             try:
                 Crawler.metadata_dict = np.load(meta.METADATA_DICTIONARY_FILE_PATH, allow_pickle=True).item()
                 # Assert in order to confirm that this is a dictionary before the call of the get() operation
@@ -132,6 +131,7 @@ class Crawler(threading.Thread):
     def update_metadata_file():
         Crawler.metadata_dict.update({meta.META_TOTAL_BLOCKS_KEY: Crawler.total_blocks})
         Crawler.metadata_dict.update({meta.META_CRAWLED_LINKS_SET_KEY: Crawler.crawled_links_set})
+        Crawler.metadata_dict.update({meta.META_BLOCK_SIZE_KEY: Crawler.max_block_size})
         np.save(meta.METADATA_DICTIONARY_FILE_PATH, Crawler.metadata_dict)
 
     @staticmethod
@@ -174,7 +174,7 @@ class Crawler(threading.Thread):
                 Crawler.crawling_links_deque_lock.release()
 
                 # Thread sleep-delay to allow time to another thread to add to the crawling_links_deque
-                time.sleep(0.5)
+                time.sleep(2)
                 Crawler.count_consecutive_empty_queue_accesses += 1
                 # Allowing an upper bound of maximum consecutive times that the queue will be empty for the threads
                 if Crawler.count_consecutive_empty_queue_accesses >= number_of_threads * 2:
